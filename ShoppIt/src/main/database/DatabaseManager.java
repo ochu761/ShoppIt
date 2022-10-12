@@ -15,6 +15,7 @@ import org.hibernate.service.ServiceRegistry;
 import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Optional;
 
 public class DatabaseManager {
     private Session session;
@@ -36,6 +37,33 @@ public class DatabaseManager {
     public void updateObject(Object o) {
         Transaction tx = session.beginTransaction();
         session.merge(o);
+        tx.commit();
+    }
+
+    /**
+     * Delete an item of a given name from the database
+     * @param itemName Name of item to delete
+     */
+    public void deleteItemByName(String itemName) {
+        FoodItem foodItem = getFromDatabase(FoodItem.class,
+                "SELECT f FROM FoodItem f WHERE f.productName='" + itemName + "'").get(0);
+
+        // Did not find item of name itemName
+        if (foodItem == null) {
+            return;
+        }
+
+        deleteObjectById(foodItem.getId());
+    }
+
+    /**
+     * Delete an object with a known id from the database
+     * @param id ID of object to delete
+     */
+    public void deleteObjectById(int id) {
+        Transaction tx = session.beginTransaction();
+        Object object = session.get(FoodItem.class, id);
+        session.remove(object);
         tx.commit();
     }
 
